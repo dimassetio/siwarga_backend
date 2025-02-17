@@ -10,7 +10,19 @@ class RtController extends BaseController
 {
   public function index(Request $request)
   {
-    $rts = Rt::all();
+    $query = Rt::with('rw');
+
+    if ($request->filled('rw')) {
+      $rwId = $request->input('rw');
+      $query->where('rw_id', $rwId);
+    }
+
+    if ($request->filled('rt')) {
+      $rtId = $request->input('rt');
+      $query->where('id', $rtId);
+    }
+
+    $rts = $query->get();
 
     return $this->sendResponse($rts, 'Berhasil memuat data rw.');
   }

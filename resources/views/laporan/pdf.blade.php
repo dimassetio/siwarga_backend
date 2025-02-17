@@ -70,14 +70,14 @@
     @foreach ($data as $index => $rt)
       <tr>
         <td>{{ $index + 1 }}</td>
-        @if (isset($rt->warga))
-          <td>{{ $rt->warga->createdBy->name }}</td>
+        @if (isset($rt->approvedWarga))
+          <td>{{ $rt->approvedWarga->createdBy->name }}</td>
           <td>{{ $rt->number }}</td>
           <td>{{ $rt->rw->number }}</td>
-          <td>{{ $rt->warga->jumlah_laki }}</td>
-          <td>{{ $rt->warga->jumlah_perempuan }}</td>
-          <td>{{ $rt->warga->getTotalWarga() }}</td>
-          <td>{{ $rt->warga->jumlah_kk }}</td>
+          <td>{{ $rt->approvedWarga->jumlah_laki }}</td>
+          <td>{{ $rt->approvedWarga->jumlah_perempuan }}</td>
+          <td>{{ $rt->approvedWarga->getTotalWarga() }}</td>
+          <td>{{ $rt->approvedWarga->jumlah_kk }}</td>
         @else
           <td>-</td>
           <td>{{ $rt->number }}</td>

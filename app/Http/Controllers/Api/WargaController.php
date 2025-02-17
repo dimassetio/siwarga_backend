@@ -5,37 +5,42 @@ namespace App\Http\Controllers\Api;
 use App\Models\Rt;
 use App\Models\Warga;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class WargaController extends BaseController
 {
   public function index(Request $request)
   {
-    if ($request->has('rw')) {
+    $query = Warga::query();
+
+    // Filter by 'rt' if provided
+    if ($request->filled('rt')) {
       $rtId = $request->input('rt');
-
-      $wargas = Warga::where('rt', $rtId)->get()->map(function ($warga) {
-        // Add the accessor attribute to the model
-        $warga->totalWarga = $warga->getTotalWarga();
-        return $warga;
-      });
-    } else if ($request->has('rw')) {
+      $query->where('rt_id', $rtId);
+    }
+    // Filter by 'rw' if provided
+    else if ($request->filled('rw')) {
       $rwId = $request->input('rw');
-
-      $wargas = Warga::whereHas('rt', function ($query) use ($rwId) {
-        $query->where('rw_id', $rwId);
-      })->get()->map(function ($warga) {
-        // Add the accessor attribute to the model
-        $warga->totalWarga = $warga->getTotalWarga();
-        return $warga;
-      });
-    } else {
-      $wargas = Warga::orderBy('rt_id')->get()->map(function ($warga) {
-        // Add the accessor attribute to the model
-        $warga->totalWarga = $warga->getTotalWarga();
-        return $warga;
+      $query->whereHas('rt', function ($subQuery) use ($rwId) {
+        $subQuery->where('rw_id', $rwId);
       });
     }
+
+    // Include relationships and apply ordering
+    $wargas = $query->with('rt.rw')
+      ->orderBy('status')
+      ->orderBy('rt_id')
+      ->get()
+      ->map(function ($warga) {
+        // Add the accessor attribute to the model
+        $warga->totalWarga = $warga->getTotalWarga();
+        $warga->rt_number = $warga->rt->number;
+        $warga->rw_id = $warga->rt->rw->id;
+        $warga->rw_number = $warga->rt->rw->number;
+        return $warga;
+      });
+
     // Calculate the summary
     $total_laki = $wargas->sum('jumlah_laki');
     $total_perempuan = $wargas->sum('jumlah_perempuan');
@@ -57,7 +62,7 @@ class WargaController extends BaseController
     //
   }
 
-  public function save(Request $request)
+  public function save(Request $request): JsonResponse
   {
     try {
       // Validate the incoming request
@@ -143,9 +148,9 @@ class WargaController extends BaseController
 
   public function downloadPdf()
   {
-    $data = Rt::with(['rw', 'warga.createdBy'])->get();
+    $data = Rt::with(['rw', 'approvedWarga.createdBy'])->get();
 
-    $wargas = $data->pluck('warga')->flatten();
+    $wargas = $data->pluck('approvedWarga')->flatten();
     $total_laki = $wargas->sum('jumlah_laki');
     $total_perempuan = $wargas->sum('jumlah_perempuan');
     $summary = [

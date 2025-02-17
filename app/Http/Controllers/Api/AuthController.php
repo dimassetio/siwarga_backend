@@ -46,6 +46,7 @@ class AuthController extends BaseController
       $success['token'] =  $user->createToken('MyApp')->plainTextToken;
       $success['name'] =  $user->name;
       $success['email'] =  $user->email;
+      $success['role'] =  $user->role;
       $success['rw_id'] =  $user->rw_id;
       $success['rt_id'] =  $user->rt_id;
 

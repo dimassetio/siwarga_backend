@@ -21,6 +21,11 @@ class Rt extends Model
     return $this->hasOne(Warga::class);
   }
 
+  public function approvedWarga()
+  {
+    return $this->hasOne(Warga::class)->where('status', 'Disetujui');
+  }
+
   public function users()
   {
     return $this->belongsToMany(User::class, 'user_rt');
